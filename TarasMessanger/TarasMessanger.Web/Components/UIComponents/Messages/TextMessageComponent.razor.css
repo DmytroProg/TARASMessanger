@@ -1,6 +1,5 @@
 ﻿.message{
     margin: 0.5rem;
-    background: #0a53be;
     color: white;
     padding: 0.5rem;
     border-radius: 10px;
@@ -14,4 +13,13 @@
 
 .sender{
     font-size: 0.8rem;
+}
+
+.my-message{
+    background-color: #579cff;
+    align-self: flex-end;
+}
+
+.other-message{
+    background-color: #5a5a5a;
 }

@@ -1,5 +1,6 @@
 ﻿@page "/chat"
 @using Microsoft.AspNetCore.Identity
+@using Microsoft.AspNetCore.SignalR.Client
 @using TarasMessanger.Web.Components.Account
 @using TarasMessanger.Web.Components.UIComponents.Messages
 @using TarasMessanger.Web.Data
@@ -8,7 +9,9 @@
 @using TarasMessenger.Core.Models.Messages
 @inject UserManager<ApplicationUser> UserManager
 @inject IdentityRedirectManager RedirectManager
+@inject NavigationManager NavigationManager
 @inject MessageService MessageService
+@inject IHttpContextAccessor HttpContextAccessor
 
 @rendermode InteractiveServer
 
@@ -21,38 +24,54 @@
             {
                 @if (message is TextMessage textMessage)
                 {
-                    <TextMessageComponent Message="@textMessage"></TextMessageComponent>
+                    <TextMessageComponent Message="@textMessage" IsMyMessage="@IsMyMessage(textMessage)"></TextMessageComponent>
                 }
             }
         </ul>
     </div>
     <div class="chat-input">
-        <input type="text" @bind="Input" class="message-input" placeholder="Type your message here">
-        <button class="send-button" @onclick="@Send">Send</button>
+        <input type="text" id="user-input" @bind="Input" class="message-input"  placeholder="Type your message here">
+        <button id="send_btn" class="send-button" @onclick="@Send">Send</button>
     </div>
 </div>
 
-
 @code {
+    private HubConnection _hubConnection;
+    
     public string Username { get; set; }
     public List<MessageBase> Messages = new();
     
     public string Input { get; set; }
-    [CascadingParameter] private HttpContext HttpContext { get; set; } = default!;
 
     private User DefaultUser;
 
     
     protected override async Task OnInitializedAsync()
     {
-        /*var user = await UserManager.GetUserAsync(HttpContext.User);
+        _hubConnection = new HubConnectionBuilder()
+            .WithUrl(NavigationManager.ToAbsoluteUri("/chatHub"))
+            .Build();
+
+        _hubConnection.On<string, string>("ReceiveMessage", (sender, message) =>
+        {
+            InvokeAsync(async () =>
+            {
+                Messages = await MessageService.GetMessages(Guid.Empty, 10, 0);
+                Messages.Reverse();
+                StateHasChanged();
+            });
+        });
+
+        await _hubConnection.StartAsync();
+        
+        var user = await UserManager.GetUserAsync(HttpContextAccessor.HttpContext.User);
         if (user is null)
         {
-            RedirectManager.RedirectToInvalidUser(UserManager, HttpContext);
+            RedirectManager.RedirectToInvalidUser(UserManager, HttpContextAccessor.HttpContext);
             return;
-        }*/
+        }
 
-        Username = "test"; //await UserManager.GetUserNameAsync("");
+        Username = await UserManager.GetUserNameAsync(user);
 
         DefaultUser = new User
         {
@@ -64,6 +83,7 @@
         };
 
         Messages = await MessageService.GetMessages(Guid.Empty, 10, 0);
+        Messages.Reverse();
     }
 
     async Task Send()
@@ -77,5 +97,9 @@
         };
         await MessageService.AddMessage(msg);
         Messages.Add(msg);
+
+        await _hubConnection.SendAsync("SendMessage", Username, Input);
     }
+
+    public bool IsMyMessage(MessageBase message) => message.User.Nickname.Equals(Username);
 }

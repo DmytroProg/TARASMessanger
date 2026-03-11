@@ -22,6 +22,7 @@ public class MessageService
     public Task<List<MessageBase>> GetMessages(Guid chatId, int limit, int offset)
     {
         return _context.MessageBases
+            .Include(x => x.User)
             .AsNoTracking()
             .Where(x => !x.IsDeleted)
             .OrderByDescending(x => x.SendAt)
