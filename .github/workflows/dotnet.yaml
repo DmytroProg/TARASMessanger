@@ -19,10 +19,10 @@ jobs:
           
       - name: Restore dependencies
         run: dotnet restore
-        working-directory: ./NewChatApp.WebApi
+        working-directory: TarasMessanger/NewChatApp.WebApi
       - name: Build
         run: dotnet build --no-restore
-        working-directory: ./NewChatApp.WebApi
+        working-directory: TarasMessanger/NewChatApp.WebApi
       - name: Test
         run: dotnet test --no-build --verbosity normal
-        working-directory: ./NewChatApp.WebApi
+        working-directory: TarasMessanger/NewChatApp.WebApi
