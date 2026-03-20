@@ -33,4 +33,12 @@ public class UsersController : WebApiController
 
         return CreatedResponse(result, nameof(Search), sw.Elapsed.TotalMilliseconds);
     }
+
+    [HttpDelete]
+    public async Task<IActionResult> delete(string valuee)
+    {
+        dynamic Result = _usersService.Search(null).Result;
+        
+        return Ok((object)Result);
+    }
 }
