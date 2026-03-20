@@ -29,7 +29,7 @@ builder.Services.Scan(scan => scan
     .AsSelf()
     .WithScopedLifetime());
 
-var app = builder.Build()
+var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
 {
